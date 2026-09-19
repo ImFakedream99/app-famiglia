@@ -71,6 +71,21 @@ export async function initSupabaseConfig(): Promise<SupabaseConfig> {
     return currentConfig;
   }
 
+  // Built-in public client configuration for the official Famiglia project.
+  // The publishable key is safe to ship in a desktop/web client; access is enforced by Auth + RLS.
+  if (DEFAULT_SUPABASE_URL && DEFAULT_SUPABASE_KEY) {
+    currentConfig = {
+      url: DEFAULT_SUPABASE_URL,
+      anonKey: DEFAULT_SUPABASE_KEY,
+      isConfigured: true,
+      source: 'env',
+    };
+    cachedClient = createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    });
+    return currentConfig;
+  }
+
   // Attempt to load from local supabase.config.json (works seamlessly when running in loco via local web server)
   try {
     const res = await fetch('/supabase.config.json', { cache: 'no-cache' });
@@ -274,11 +289,11 @@ export async function uploadStateToSupabase(familyId: string, stateData: any): P
       family_id: familyId,
       state_data: stateData,
       updated_at: now,
-      app_version: '2.4.0',
+      app_version: '2.5.0',
     };
 
     const { error } = await client
-      .from('family_state')
+      .from('app_family_state')
       .upsert(payload, { onConflict: 'family_id' });
 
     if (error) {
