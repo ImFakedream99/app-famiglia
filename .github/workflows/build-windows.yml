@@ -17,20 +17,55 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Install dependencies
         run: npm install
+
       - name: Build installer
+        env:
+          VITE_BUILD_COMMIT: ${{ github.sha }}
         run: npm run dist:win
+
+      - name: Publish app update notification
+        shell: pwsh
+        env:
+          SUPABASE_URL: https://ozygvdbtctzaxwijynzj.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_i0rbYzCRY5AV8pmTrbJbbA_lL88oIhj
+          APP_UPDATE_TOKEN: u1mDvx2xSa5xCYx-WfOMCXLFIMRJz6AdWN5YQTY-2j4
+          GITHUB_SHA_VALUE: ${{ github.sha }}
+          GITHUB_REPOSITORY_VALUE: ${{ github.repository }}
+        run: |
+          $version = node -p "require('./package.json').version"
+          $message = (git log -1 --pretty=%s)
+          $commitUrl = "https://github.com/$env:GITHUB_REPOSITORY_VALUE/commit/$env:GITHUB_SHA_VALUE"
+          $body = @{
+            p_token = $env:APP_UPDATE_TOKEN
+            p_version = $version
+            p_commit_sha = $env:GITHUB_SHA_VALUE
+            p_commit_message = $message
+            p_commit_url = $commitUrl
+          } | ConvertTo-Json -Compress
+
+          $headers = @{
+            apikey = $env:SUPABASE_PUBLISHABLE_KEY
+            Authorization = "Bearer $($env:SUPABASE_PUBLISHABLE_KEY)"
+            "Content-Type" = "application/json"
+          }
+
+          Invoke-RestMethod -Method Post -Uri "$env:SUPABASE_URL/rest/v1/rpc/publish_app_update" -Headers $headers -Body $body
+
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: Famiglia-Windows-Installer
           path: release/Famiglia-Installer-*.exe
           if-no-files-found: error
+
       - name: Create GitHub release on tag
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
