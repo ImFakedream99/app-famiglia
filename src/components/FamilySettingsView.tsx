@@ -34,9 +34,10 @@ export const FamilySettingsView: React.FC = () => {
     toggleHighContrastDark,
     familyId,
     familyName,
+    familyRole,
   } = useFamily();
 
-  const isParent = currentMember.role === 'parent';
+  const isParent = familyRole === 'owner';
 
   // Notification Rules State (PRD 6.7)
   const [notificationSettings, setNotificationSettings] = useState<NotificationSetting[]>([
