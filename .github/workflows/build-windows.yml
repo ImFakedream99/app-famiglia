@@ -32,7 +32,7 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
         run: |
           $version = "2.5.$env:BUILD_NUMBER"
-          node -e "const fs=require('fs'); const p=require('./package.json'); p.version=process.argv[1]; fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\\n')" $version
+          node -e "const fs=require('fs'); const p=require('./package.json'); p.version=process.argv[1]; fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + String.fromCharCode(10))" $version
           Write-Host "Building Famiglia version $version"
 
       - name: Build installer
