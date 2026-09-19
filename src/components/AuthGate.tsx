@@ -132,6 +132,10 @@ export const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
     setBusy(true);
     try {
       const created = await createFamily(familyName, displayName);
+      // Mark this browser session as a freshly created family so the app state
+      // starts empty instead of inheriting the old local demo snapshot.
+      localStorage.setItem('famiglia_new_family_reset', created.familyId);
+      localStorage.removeItem('famiglia_gestione_data_v1');
       setFamily(created);
     } catch (e: any) {
       setError(e?.message || 'Non è stato possibile creare il nucleo.');
