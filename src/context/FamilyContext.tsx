@@ -93,32 +93,49 @@ interface FamilyContextType {
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'famiglia_gestione_data_v1';
+const FRESH_FAMILY_KEY = 'famiglia_new_family_reset';
+
+// A newly created family gets the complete app UI with an intentionally empty
+// dataset. The owner is the only initial app member; everything else is added
+// by the family from the existing screens.
+const createFreshFamilyMember = (familyId: string, displayName: string): FamilyMember => ({
+  id: `member_${familyId}`,
+  name: displayName || 'Proprietario',
+  role: 'parent',
+  avatarColor: 'bg-indigo-600',
+});
 
 export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load initial from localStorage or fall back
+  // Load the same application shell for every family, but start newly created
+  // families from a completely empty dataset instead of the demo snapshot.
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const familyId = localStorage.getItem('famiglia_family_id') || 'local-demo-family';
   const familyName = localStorage.getItem('famiglia_family_name') || 'Famiglia';
   const authenticatedDisplayName = localStorage.getItem('famiglia_display_name') || '';
   const familyRole = (localStorage.getItem('famiglia_member_role') === 'member' ? 'member' : 'owner') as 'owner' | 'member';
-  const [currentMemberId, setCurrentMemberId] = useState<string>('m1'); // First authenticated profile by default
-  const [members, setMembers] = useState<FamilyMember[]>(() => {
-    if (!authenticatedDisplayName) return INITIAL_MEMBERS;
-    return INITIAL_MEMBERS.map((member, index) =>
-      index === 0
-        ? { ...member, name: authenticatedDisplayName, role: 'parent', avatarColor: 'bg-indigo-600' }
-        : member
-    );
-  });
-  const [categories, setCategories] = useState<BudgetCategory[]>(INITIAL_CATEGORIES);
-  const [specialBudgets, setSpecialBudgets] = useState<SpecialBudget[]>(INITIAL_SPECIAL_BUDGETS);
-  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
-  const [allowances, setAllowances] = useState<AllowanceConfig[]>(INITIAL_ALLOWANCES);
-  const [allowanceRecords, setAllowanceRecords] = useState<AllowanceRecord[]>(INITIAL_ALLOWANCE_RECORDS);
-  const [chores, setChores] = useState<Chore[]>(INITIAL_CHORES);
-  const [requests, setRequests] = useState<ExtraFundRequest[]>(INITIAL_REQUESTS);
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(INITIAL_SAVINGS_GOALS);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const isFreshFamily = localStorage.getItem(FRESH_FAMILY_KEY) === familyId;
+
+  const emptyMembers = isFreshFamily
+    ? [createFreshFamilyMember(familyId, authenticatedDisplayName)]
+    : INITIAL_MEMBERS.map((member, index) =>
+        index === 0 && authenticatedDisplayName
+          ? { ...member, name: authenticatedDisplayName, role: 'parent', avatarColor: 'bg-indigo-600' }
+          : member
+      );
+
+  const [currentMemberId, setCurrentMemberId] = useState<string>(() =>
+    isFreshFamily ? emptyMembers[0].id : 'm1'
+  );
+  const [members, setMembers] = useState<FamilyMember[]>(emptyMembers);
+  const [categories, setCategories] = useState<BudgetCategory[]>(isFreshFamily ? [] : INITIAL_CATEGORIES);
+  const [specialBudgets, setSpecialBudgets] = useState<SpecialBudget[]>(isFreshFamily ? [] : INITIAL_SPECIAL_BUDGETS);
+  const [expenses, setExpenses] = useState<Expense[]>(isFreshFamily ? [] : INITIAL_EXPENSES);
+  const [allowances, setAllowances] = useState<AllowanceConfig[]>(isFreshFamily ? [] : INITIAL_ALLOWANCES);
+  const [allowanceRecords, setAllowanceRecords] = useState<AllowanceRecord[]>(isFreshFamily ? [] : INITIAL_ALLOWANCE_RECORDS);
+  const [chores, setChores] = useState<Chore[]>(isFreshFamily ? [] : INITIAL_CHORES);
+  const [requests, setRequests] = useState<ExtraFundRequest[]>(isFreshFamily ? [] : INITIAL_REQUESTS);
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(isFreshFamily ? [] : INITIAL_SAVINGS_GOALS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(isFreshFamily ? [] : INITIAL_NOTIFICATIONS);
   const familyInviteCode = familyId;
 
   // High-contrast dark mode preference for night-time mobile usage
@@ -139,8 +156,16 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [highContrastDark]);
 
-  // Load from localStorage on mount
+  // Existing families keep their local state. A freshly created family must
+  // never hydrate the previous browser/demo snapshot.
   useEffect(() => {
+    if (isFreshFamily) {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('famiglia_supabase_last_sync');
+      localStorage.removeItem(FRESH_FAMILY_KEY);
+      return;
+    }
+
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -160,7 +185,7 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } catch (e) {
       console.error('Failed to load local storage state:', e);
     }
-  }, []);
+  }, [isFreshFamily]);
 
   // Save to localStorage when state updates
   useEffect(() => {
