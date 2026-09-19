@@ -8,6 +8,7 @@ export const AppUpdateBanner: React.FC = () => {
   const [update, setUpdate] = useState<AppUpdateInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [installing, setInstalling] = useState(false);
 
   const check = async () => {
     setChecking(true);
@@ -76,13 +77,22 @@ export const AppUpdateBanner: React.FC = () => {
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {update.download_url && (
               <a
-                href={update.download_url}
-                target="_blank"
-                rel="noreferrer"
+                href="#"
+                onClick={async (event) => {
+                  event.preventDefault();
+                  if (installing) return;
+                  setInstalling(true);
+                  try {
+                    if (window.famigliaUpdater?.install) await window.famigliaUpdater.install(update.download_url);
+                    else window.open(update.download_url, '_blank', 'noopener,noreferrer');
+                  } catch {
+                    setInstalling(false);
+                  }
+                }}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
               >
-                <Download className="h-3.5 w-3.5" />
-                Scarica aggiornamento
+                {installing ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                {installing ? 'Installazione...' : 'Aggiorna automaticamente'}
               </a>
             )}
 
@@ -92,7 +102,7 @@ export const AppUpdateBanner: React.FC = () => {
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
             >
-              <Download className="h-3.5 w-3.5" />
+              <ExternalLink className="h-3.5 w-3.5" />
               Dettagli
             </a>
 
