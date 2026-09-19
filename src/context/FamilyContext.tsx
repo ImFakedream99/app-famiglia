@@ -42,6 +42,7 @@ interface FamilyContextType {
   familyInviteCode: string;
   familyId: string;
   familyName: string;
+  familyRole: 'owner' | 'member';
   setActiveTab: (tab: ActiveTab) => void;
   switchMember: (memberId: string) => void;
   addExpense: (expenseData: {
@@ -99,6 +100,7 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const familyId = localStorage.getItem('famiglia_family_id') || 'local-demo-family';
   const familyName = localStorage.getItem('famiglia_family_name') || 'Famiglia';
   const authenticatedDisplayName = localStorage.getItem('famiglia_display_name') || '';
+  const familyRole = (localStorage.getItem('famiglia_member_role') === 'member' ? 'member' : 'owner') as 'owner' | 'member';
   const [currentMemberId, setCurrentMemberId] = useState<string>('m1'); // First authenticated profile by default
   const [members, setMembers] = useState<FamilyMember[]>(() => {
     if (!authenticatedDisplayName) return INITIAL_MEMBERS;
@@ -843,6 +845,7 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         familyInviteCode,
         familyId,
         familyName,
+        familyRole,
         setActiveTab,
         switchMember,
         addExpense,
