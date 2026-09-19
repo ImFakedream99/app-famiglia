@@ -41,7 +41,7 @@ export async function initSupabaseConfig(): Promise<SupabaseConfig> {
   const localUrl = localStorage.getItem(STORAGE_URL_KEY)?.trim() || '';
   const localKey = localStorage.getItem(STORAGE_ANON_KEY)?.trim() || '';
 
-  if (localUrl && localKey) {
+  if (localUrl === DEFAULT_SUPABASE_URL && localKey) {
     currentConfig = {
       url: localUrl,
       anonKey: localKey,
@@ -132,7 +132,7 @@ export function getSupabaseConfig(): SupabaseConfig {
   const localUrl = localStorage.getItem(STORAGE_URL_KEY)?.trim() || '';
   const localKey = localStorage.getItem(STORAGE_ANON_KEY)?.trim() || '';
 
-  if (localUrl && localKey) {
+  if (localUrl === DEFAULT_SUPABASE_URL && localKey) {
     currentConfig = {
       url: localUrl,
       anonKey: localKey,
