@@ -40,6 +40,8 @@ interface FamilyContextType {
   notifications: NotificationItem[];
   activeTab: ActiveTab;
   familyInviteCode: string;
+  familyId: string;
+  familyName: string;
   setActiveTab: (tab: ActiveTab) => void;
   switchMember: (memberId: string) => void;
   addExpense: (expenseData: {
@@ -94,8 +96,18 @@ const STORAGE_KEY = 'famiglia_gestione_data_v1';
 export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load initial from localStorage or fall back
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
-  const [currentMemberId, setCurrentMemberId] = useState<string>('m1'); // Marco (Parent) by default
-  const [members, setMembers] = useState<FamilyMember[]>(INITIAL_MEMBERS);
+  const familyId = localStorage.getItem('famiglia_family_id') || 'local-demo-family';
+  const familyName = localStorage.getItem('famiglia_family_name') || 'Famiglia';
+  const authenticatedDisplayName = localStorage.getItem('famiglia_display_name') || '';
+  const [currentMemberId, setCurrentMemberId] = useState<string>('m1'); // First authenticated profile by default
+  const [members, setMembers] = useState<FamilyMember[]>(() => {
+    if (!authenticatedDisplayName) return INITIAL_MEMBERS;
+    return INITIAL_MEMBERS.map((member, index) =>
+      index === 0
+        ? { ...member, name: authenticatedDisplayName, role: 'parent', avatarColor: 'bg-indigo-600' }
+        : member
+    );
+  });
   const [categories, setCategories] = useState<BudgetCategory[]>(INITIAL_CATEGORIES);
   const [specialBudgets, setSpecialBudgets] = useState<SpecialBudget[]>(INITIAL_SPECIAL_BUDGETS);
   const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
@@ -105,7 +117,7 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [requests, setRequests] = useState<ExtraFundRequest[]>(INITIAL_REQUESTS);
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(INITIAL_SAVINGS_GOALS);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
-  const familyInviteCode = 'FAM-ROSSI-7829';
+  const familyInviteCode = familyId;
 
   // High-contrast dark mode preference for night-time mobile usage
   const [highContrastDark, setHighContrastDarkState] = useState<boolean>(() => {
@@ -829,6 +841,8 @@ export const FamilyProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         notifications,
         activeTab,
         familyInviteCode,
+        familyId,
+        familyName,
         setActiveTab,
         switchMember,
         addExpense,
