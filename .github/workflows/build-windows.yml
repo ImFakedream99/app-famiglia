@@ -47,18 +47,25 @@ jobs:
           GITHUB_TOKEN_VALUE: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_SHA_VALUE: ${{ github.sha }}
           GITHUB_REPOSITORY_VALUE: ${{ github.repository }}
-          RELEASE_URL: ${{ steps.release.outputs.url }}
+          RELEASE_ASSETS: ${{ steps.release.outputs.assets }}
         run: |
           $version = node -p "require('./package.json').version"
           $message = (git log -1 --pretty=%s)
           $commitUrl = "https://github.com/$env:GITHUB_REPOSITORY_VALUE/commit/$env:GITHUB_SHA_VALUE"
+
+          $assets = $env:RELEASE_ASSETS | ConvertFrom-Json
+          $installer = $assets | Where-Object { $_.name -like 'Famiglia-Installer-*.exe' } | Select-Object -First 1
+          if (-not $installer -or -not $installer.browser_download_url) {
+            throw "Installer asset URL non disponibile nella Release."
+          }
+
           $body = @{
             repository = $env:GITHUB_REPOSITORY_VALUE
             version = $version
             commit_sha = $env:GITHUB_SHA_VALUE
             commit_message = $message
             commit_url = $commitUrl
-            download_url = $env:RELEASE_URL
+            download_url = $installer.browser_download_url
           } | ConvertTo-Json -Compress
 
           $headers = @{
