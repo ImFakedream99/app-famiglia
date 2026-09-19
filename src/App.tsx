@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FamilyProvider, useFamily } from './context/FamilyContext';
 import { AuthGate } from './components/AuthGate';
+import { AppUpdateBanner } from './components/AppUpdateBanner';
 import { DesktopTitleBar } from './components/DesktopTitleBar';
 import { DesktopMenuBar } from './components/DesktopMenuBar';
 import { DesktopStatusBar } from './components/DesktopStatusBar';
@@ -27,7 +28,6 @@ import { Expense } from './types';
 const MainLayout: React.FC = () => {
   const { activeTab, setActiveTab, toggleHighContrastDark, currentMember } = useFamily();
 
-  // Modals state
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
@@ -49,7 +49,6 @@ const MainLayout: React.FC = () => {
     isShortcutsModalOpen ||
     previewExpense !== null;
 
-  // Global Keyboard Shortcuts hook
   const { toast } = useKeyboardShortcuts({
     onOpenExpenseModal: () => setIsExpenseModalOpen(true),
     onOpenDownloadModal: () => setIsDownloadModalOpen(true),
@@ -67,26 +66,23 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-stone-50/50 dark:bg-[#09090b] text-stone-900 dark:text-zinc-100 flex flex-col font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-200">
-      {/* Desktop Native Window Titlebar */}
       <DesktopTitleBar onOpenDownloadModal={() => setIsDownloadModalOpen(true)} />
 
-      {/* Desktop Native Menu Bar (File, Finanze, Strumenti, Aiuto) */}
       <DesktopMenuBar
         onOpenExpenseModal={() => setIsExpenseModalOpen(true)}
         onOpenDownloadModal={() => setIsDownloadModalOpen(true)}
         onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
       />
 
-      {/* Main Navigation & Profile Switcher */}
       <Navbar
         onOpenExpenseModal={() => setIsExpenseModalOpen(true)}
         onOpenDownloadModal={() => setIsDownloadModalOpen(true)}
         onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
       />
 
-      {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Prominent Download / Install App Banner (dismissible) */}
+        <AppUpdateBanner />
+
         {!bannerDismissed && (
           <div className="relative">
             <PWAInstallButton variant="banner" />
@@ -121,7 +117,6 @@ const MainLayout: React.FC = () => {
         {activeTab === 'family' && <FamilySettingsView />}
       </main>
 
-      {/* Modals */}
       <ExpenseModal
         isOpen={isExpenseModalOpen}
         onClose={() => setIsExpenseModalOpen(false)}
@@ -132,21 +127,15 @@ const MainLayout: React.FC = () => {
         onClose={() => setPreviewExpense(null)}
       />
 
-      {/* Central Download Executable Modal */}
       <DownloadExecutableModal
         isOpen={isDownloadModalOpen}
         onClose={() => setIsDownloadModalOpen(false)}
       />
 
-      {/* Keyboard Shortcuts Cheatsheet Modal */}
       <KeyboardShortcutsModal
         isOpen={isShortcutsModalOpen}
         onClose={() => setIsShortcutsModalOpen(false)}
         onOpenExpenseModal={() => {
-          setIsShortcutsModalOpen(false);
-          setIsExpenseModalOpen(true);
-        }}
-        onOpenDownloadModal={() => {
           setIsShortcutsModalOpen(false);
           setIsDownloadModalOpen(true);
         }}
@@ -157,13 +146,9 @@ const MainLayout: React.FC = () => {
         onToggleTheme={() => toggleHighContrastDark(currentMember.id)}
       />
 
-      {/* Connectivity status banner */}
       <OfflineIndicator />
-
-      {/* Global Shortcut Trigger Feedback Toast */}
       <ShortcutToast toast={toast} />
 
-      {/* Native Desktop Status Bar */}
       <DesktopStatusBar
         onOpenDownloadModal={() => setIsDownloadModalOpen(true)}
         onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
