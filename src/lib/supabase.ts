@@ -18,6 +18,11 @@ const STORAGE_URL_KEY = 'famiglia_supabase_url';
 const STORAGE_ANON_KEY = 'famiglia_supabase_anon_key';
 const STORAGE_LAST_SYNC_KEY = 'famiglia_supabase_last_sync';
 
+// Publishable client configuration for the official Famiglia Supabase project.
+// This key is intentionally a public client key; authorization is enforced by Supabase Auth + RLS.
+const DEFAULT_SUPABASE_URL = 'https://ozygvdbtctzaxwijynzj.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'sb_publishable_i0rbYzCRY5AV8pmTrbJbbA_lL88oIhj';
+
 let cachedClient: SupabaseClient | null = null;
 let currentConfig: SupabaseConfig = {
   url: '',
@@ -214,9 +219,9 @@ export async function testSupabaseConnection(url?: string, anonKey?: string): Pr
   try {
     const testClient = createClient(targetUrl, targetKey);
     
-    // First try querying the family_state table
+    // First try querying the app_family_state table
     const { data, error } = await testClient
-      .from('family_state')
+      .from('app_family_state')
       .select('id')
       .limit(1);
 
@@ -227,7 +232,7 @@ export async function testSupabaseConnection(url?: string, anonKey?: string): Pr
       if (error.code === '42P01' || error.message.includes('relation') || error.message.includes('does not exist')) {
         return {
           success: true,
-          message: 'Connessione stabilita con Supabase! (Nota: esegui lo script SQL fornito per creare la tabella family_state)',
+          message: 'Connessione stabilita con Supabase! (Nota: il database deve contenere le tabelle di autenticazione Famiglia)',
           latencyMs,
         };
       }
