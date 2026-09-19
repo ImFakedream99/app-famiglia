@@ -157,6 +157,20 @@ export function useSupabaseSync(
     }
   }, [familyId, onStateRestored]);
 
+  // Initialize the cloud snapshot for a newly created family, without replacing local demo data.
+  useEffect(() => {
+    if (!isConnected || !config.isConfigured || !familyId) return;
+    let cancelled = false;
+    (async () => {
+      const existing = await downloadStateFromSupabase(familyId);
+      if (cancelled || existing.success) return;
+      if ((existing.error || '').includes('Nessun dato trovato')) {
+        await syncNow();
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [familyId, isConnected, config.isConfigured, syncNow]);
+
   // Realtime subscription when connected
   useEffect(() => {
     const client = getSupabaseClient();
@@ -170,7 +184,7 @@ export function useSupabaseSync(
           {
             event: '*',
             schema: 'public',
-            table: 'family_state',
+            table: 'app_family_state',
             filter: `family_id=eq.${familyId}`,
           },
           (payload: any) => {
