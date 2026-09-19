@@ -6,7 +6,6 @@ export interface AppUpdateInfo {
   commit_message: string;
   commit_url: string;
   download_url: string;
-  download_url: string;
   updated_at: string;
 }
 
