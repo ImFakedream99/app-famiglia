@@ -99,6 +99,7 @@ export function persistFamily(family: AppFamily) {
   localStorage.setItem('famiglia_family_id', family.familyId);
   localStorage.setItem('famiglia_family_name', family.familyName);
   localStorage.setItem('famiglia_display_name', family.displayName);
+  localStorage.setItem('famiglia_member_role', family.memberRole);
 }
 
 export function getInviteTokenFromUrl() {
