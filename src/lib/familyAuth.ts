@@ -39,6 +39,7 @@ export async function signOut() {
   localStorage.removeItem('famiglia_family_id');
   localStorage.removeItem('famiglia_family_name');
   localStorage.removeItem('famiglia_display_name');
+  localStorage.removeItem('famiglia_member_role');
 }
 
 export async function getMyFamily(): Promise<AppFamily | null> {
