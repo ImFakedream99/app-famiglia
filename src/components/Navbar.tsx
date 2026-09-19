@@ -25,6 +25,7 @@ import { useFamily } from '../context/FamilyContext';
 import { ActiveTab, NotificationItem } from '../types';
 import { calculateAge, formatDateTime } from '../utils/formatters';
 import { PWAInstallButton } from './PWAInstallButton';
+import { signOut } from '../lib/familyAuth';
 
 interface NavbarProps {
   onOpenExpenseModal: () => void;
@@ -49,6 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     requests,
     isHighContrastDark,
     toggleHighContrastDark,
+    familyName,
   } = useFamily();
 
   const [isMemberDropdownOpen, setIsMemberDropdownOpen] = useState(false);
@@ -144,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-stone-900 tracking-tight text-base">Famiglia</span>
                 <span className="text-xs bg-indigo-50 text-indigo-700 font-semibold px-2 py-0.5 rounded-full border border-indigo-100">
-                  Rossi
+                  {familyName}
                 </span>
               </div>
               <p className="text-[11px] text-stone-600 font-medium -mt-0.5">Gestione Finanziaria</p>
@@ -410,7 +412,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </div>
                   </div>
 
-                  <div className="pt-1.5 px-3 pb-1">
+                  <div className="pt-1.5 px-3 pb-1 space-y-1">
                     <button
                       onClick={() => {
                         setActiveTab('family');
@@ -419,6 +421,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="w-full text-center text-xs text-indigo-600 hover:text-indigo-800 font-semibold py-1 hover:bg-indigo-50/50 rounded-lg transition-colors"
                     >
                       Gestisci Membri & Profilo
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await signOut();
+                        window.location.reload();
+                      }}
+                      className="w-full text-center text-xs text-rose-600 hover:text-rose-700 font-semibold py-1 hover:bg-rose-50 rounded-lg transition-colors"
+                    >
+                      Esci dall'account
                     </button>
                   </div>
                 </div>
