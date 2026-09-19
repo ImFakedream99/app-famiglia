@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FamilyProvider, useFamily } from './context/FamilyContext';
+import { AuthGate } from './components/AuthGate';
 import { DesktopTitleBar } from './components/DesktopTitleBar';
 import { DesktopMenuBar } from './components/DesktopMenuBar';
 import { DesktopStatusBar } from './components/DesktopStatusBar';
@@ -173,9 +174,11 @@ const MainLayout: React.FC = () => {
 
 export function App() {
   return (
-    <FamilyProvider>
-      <MainLayout />
-    </FamilyProvider>
+    <AuthGate>
+      <FamilyProvider>
+        <MainLayout />
+      </FamilyProvider>
+    </AuthGate>
   );
 }
 
