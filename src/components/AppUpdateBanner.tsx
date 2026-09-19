@@ -62,9 +62,11 @@ export const AppUpdateBanner: React.FC = () => {
               v{update.version}
             </span>
           </div>
+
           <p className="mt-0.5 text-xs text-indigo-900/80">
-            È stata pubblicata una versione più recente dell'app. Installa l'ultimo aggiornamento per usare le modifiche più recenti.
+            È disponibile una nuova versione. Apri il download, installa il nuovo Famiglia e riapri l'app.
           </p>
+
           {update.commit_message && (
             <p className="mt-1 truncate text-[11px] font-medium text-indigo-800">
               {update.commit_message}
@@ -72,15 +74,28 @@ export const AppUpdateBanner: React.FC = () => {
           )}
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
+            {update.download_url && (
+              <a
+                href={update.download_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Scarica aggiornamento
+              </a>
+            )}
+
             <a
               href={update.commit_url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-indigo-700"
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              Vedi aggiornamento
+              Dettagli
             </a>
+
             <button
               type="button"
               onClick={dismiss}
