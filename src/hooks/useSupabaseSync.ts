@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   initSupabaseConfig,
   getSupabaseConfig,
@@ -35,6 +35,7 @@ export function useSupabaseSync(
     return localStorage.getItem('famiglia_supabase_last_sync');
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const initializedFamilyRef = useRef<string | null>(null);
 
   // Initialize and check connection on mount
   useEffect(() => {
@@ -159,7 +160,8 @@ export function useSupabaseSync(
 
   // Initialize the cloud snapshot for a newly created family, without replacing local demo data.
   useEffect(() => {
-    if (!isConnected || !config.isConfigured || !familyId) return;
+    if (!isConnected || !config.isConfigured || !familyId || initializedFamilyRef.current === familyId) return;
+    initializedFamilyRef.current = familyId;
     let cancelled = false;
     (async () => {
       const existing = await downloadStateFromSupabase(familyId);
@@ -169,7 +171,7 @@ export function useSupabaseSync(
       }
     })();
     return () => { cancelled = true; };
-  }, [familyId, isConnected, config.isConfigured, syncNow]);
+  }, [familyId, isConnected, config.isConfigured]);
 
   // Realtime subscription when connected
   useEffect(() => {
