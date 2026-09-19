@@ -83,3 +83,4 @@ jobs:
           if-no-files-found: error
 
 # Build uses the latest main source for every installer artifact.
+# Trigger build verification.
