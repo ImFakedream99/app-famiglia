@@ -26,6 +26,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Set build version
+        shell: pwsh
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          $version = "2.5.$env:BUILD_NUMBER"
+          node -e "const fs=require('fs'); const p=require('./package.json'); p.version=process.argv[1]; fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\\n')" $version
+          Write-Host "Building Famiglia version $version"
+
       - name: Build installer
         env:
           VITE_BUILD_COMMIT: ${{ github.sha }}
@@ -83,4 +92,4 @@ jobs:
           if-no-files-found: error
 
 # Build uses the latest main source for every installer artifact.
-# Trigger build verification.\n# Re-run after updater backend repair.
+# Each build gets a unique patch version based on the GitHub Actions run number.
