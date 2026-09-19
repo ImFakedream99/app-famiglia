@@ -37,3 +37,5 @@ jobs:
         with:
           files: release/Famiglia-Installer-*.exe
           generate_release_notes: true
+
+# Build uses the latest main source for every installer artifact.
