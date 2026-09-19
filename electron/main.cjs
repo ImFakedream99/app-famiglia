@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const https = require('https');
+const crypto = require('crypto');
 
 let server;
 let mainWindow;
@@ -102,33 +103,91 @@ app.whenReady().then(async()=>{
 app.on('window-all-closed',()=>{if(process.platform!=='darwin') app.quit();});
 app.on('before-quit',()=>{if(server) server.close();});
 
-function downloadFile(url, destination) {
+function isAllowedInstallerUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:'
+      && parsed.hostname === 'github.com'
+      && /^\/ImFakedream99\/app-famiglia\/releases\/download\/[^/]+\/Famiglia-Installer-[^/]+\.exe$/i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function downloadFile(url, destination, redirects = 0) {
   return new Promise((resolve, reject) => {
+    if (redirects > 5) return reject(new Error('Troppi redirect durante il download dell\'aggiornamento.'));
     const transport = url.startsWith('https:') ? https : http;
-    const request = transport.get(url, { headers: { 'User-Agent': 'Famiglia-Updater' } }, (response) => {
+    const request = transport.get(url, {
+      headers: { 'User-Agent': 'Famiglia-Updater' },
+    }, (response) => {
       if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
         response.resume();
-        return resolve(downloadFile(new URL(response.headers.location, url).toString(), destination));
+        const nextUrl = new URL(response.headers.location, url).toString();
+        return resolve(downloadFile(nextUrl, destination, redirects + 1));
       }
       if (response.statusCode !== 200) {
         response.resume();
         return reject(new Error('Download aggiornamento fallito: HTTP ' + response.statusCode));
       }
+
+      const contentType = String(response.headers['content-type'] || '').toLowerCase();
+      if (contentType.includes('text/html') || contentType.includes('application/json')) {
+        response.resume();
+        return reject(new Error('Il download non ha restituito un installer Windows valido.'));
+      }
+
       const file = fs.createWriteStream(destination);
+      const hash = crypto.createHash('sha256');
+      response.on('data', (chunk) => hash.update(chunk));
       response.pipe(file);
-      file.on('finish', () => file.close(() => resolve(destination)));
-      file.on('error', (error) => { try { file.close(); } catch {} reject(error); });
+
+      const fail = (error) => {
+        try { file.destroy(); } catch {}
+        try { fs.unlinkSync(destination); } catch {}
+        reject(error);
+      };
+
+      file.on('finish', () => {
+        file.close((error) => {
+          if (error) return fail(error);
+          if (!fs.existsSync(destination) || fs.statSync(destination).size === 0) {
+            return fail(new Error('Installer scaricato vuoto.'));
+          }
+          resolve({ path: destination, sha256: hash.digest('hex') });
+        });
+      });
+      file.on('error', fail);
+      response.on('error', fail);
     });
+    request.setTimeout(10 * 60 * 1000, () => request.destroy(new Error('Timeout durante il download dell\'aggiornamento.')));
     request.on('error', reject);
   });
 }
 
 ipcMain.handle('update:download-install', async (_event, url) => {
   const updateUrl = String(url || '').trim();
-  if (!/^https:\/\//i.test(updateUrl)) throw new Error('URL aggiornamento non valido.');
-  const installerPath = path.join(app.getPath('temp'), 'Famiglia-Update.exe');
-  await downloadFile(updateUrl, installerPath);
-  spawn(installerPath, [], { detached: true, stdio: 'ignore', windowsHide: false }).unref();
-  setTimeout(() => app.quit(), 300);
+  if (!isAllowedInstallerUrl(updateUrl)) {
+    throw new Error('URL aggiornamento non valido.');
+  }
+
+  const installerPath = path.join(
+    app.getPath('temp'),
+    `Famiglia-Update-${Date.now()}-${crypto.randomBytes(4).toString('hex')}.exe`,
+  );
+
+  const downloaded = await downloadFile(updateUrl, installerPath);
+  if (!downloaded?.path || !fs.existsSync(downloaded.path)) {
+    throw new Error('Installer aggiornamento non disponibile.');
+  }
+
+  const child = spawn(downloaded.path, ['/S'], {
+    detached: true,
+    stdio: 'ignore',
+    windowsHide: false,
+  });
+  child.unref();
+
+  setTimeout(() => app.quit(), 1000);
   return true;
 });
