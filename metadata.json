@@ -1,0 +1,6 @@
+{
+  "name": "Famiglia — Gestione Economica",
+  "description": "Piattaforma per la gestione condivisa e trasparente di budget familiare, spese, paghette e obiettivi di risparmio tra genitori e figli adolescenti.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

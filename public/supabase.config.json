@@ -1,0 +1,6 @@
+{
+  "supabaseUrl": "https://your-project.supabase.co",
+  "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.your-anon-key",
+  "familyId": "FAM-ROSSI-7829",
+  "_comment": "Inserisci qui le tue credenziali Supabase. Quando avvii Famiglia.exe in locale sul tuo PC, l'app le carichera' in automatico per connettersi al database su Supabase."
+}

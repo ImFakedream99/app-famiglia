@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="50%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.05" />
+    </linearGradient>
+    <linearGradient id="coinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#042f2e" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Inner Soft Glow -->
+  <circle cx="256" cy="180" r="160" fill="#34d399" opacity="0.25" />
+
+  <!-- Shield Shape / Vault Outline -->
+  <path d="M 256 86 C 330 86 384 108 384 108 V 242 C 384 330 326 398 256 426 C 186 398 128 330 128 242 V 108 C 128 108 182 86 256 86 Z"
+        fill="url(#shieldGrad)" stroke="#ffffff" stroke-width="6" stroke-opacity="0.4" filter="url(#shadow)" />
+
+  <!-- Family Figures and Finance Symbol -->
+  <!-- Left Parent (Head & Torso) -->
+  <circle cx="206" cy="200" r="28" fill="#ffffff" />
+  <path d="M 166 288 C 166 252 186 244 206 244 C 226 244 246 252 246 288" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" />
+
+  <!-- Right Parent / Teen (Head & Torso) -->
+  <circle cx="306" cy="200" r="28" fill="#ffffff" />
+  <path d="M 266 288 C 266 252 286 244 306 244 C 326 244 346 252 346 288" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" />
+
+  <!-- Center Child / Piggy / Coin Vault -->
+  <circle cx="256" cy="336" r="48" fill="url(#coinGrad)" filter="url(#shadow)" />
+  <circle cx="256" cy="336" r="38" fill="none" stroke="#d97706" stroke-width="3" stroke-dasharray="4 3" opacity="0.6" />
+
+  <!-- Euro Symbol in Coin -->
+  <text x="256" y="348" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="34" font-weight="800" fill="#78350f" text-anchor="middle">€</text>
+
+  <!-- Sparkles -->
+  <path d="M 374 150 L 380 162 L 392 168 L 380 174 L 374 186 L 368 174 L 356 168 L 368 162 Z" fill="#fef08a" opacity="0.9" />
+  <path d="M 134 160 L 138 168 L 146 172 L 138 176 L 134 184 L 130 176 L 122 172 L 130 168 Z" fill="#fef08a" opacity="0.8" />
+</svg>
