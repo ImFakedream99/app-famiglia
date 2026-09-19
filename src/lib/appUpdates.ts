@@ -5,6 +5,7 @@ export interface AppUpdateInfo {
   commit_sha: string;
   commit_message: string;
   commit_url: string;
+  download_url: string;
   updated_at: string;
 }
 
@@ -23,7 +24,7 @@ export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
   try {
     const { data, error } = await client
       .from('app_updates')
-      .select('version, commit_sha, commit_message, commit_url, updated_at')
+      .select('version, commit_sha, commit_message, commit_url, download_url, updated_at')
       .eq('id', 'current')
       .maybeSingle();
 
