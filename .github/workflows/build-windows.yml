@@ -43,7 +43,7 @@ jobs:
       - name: Publish app update notification
         shell: pwsh
         env:
-          UPDATE_FUNCTION_URL: https://ozygvdbtctzaxwijynzj.supabase.co/functions/v1/publish-app-update
+          UPDATE_FUNCTION_URL: https://chhdzphryqothrdwhiep.supabase.co/functions/v1/publish-app-update
           GITHUB_TOKEN_VALUE: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_SHA_VALUE: ${{ github.sha }}
           GITHUB_REPOSITORY_VALUE: ${{ github.repository }}
