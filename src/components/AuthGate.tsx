@@ -28,6 +28,9 @@ type Mode = 'login' | 'register';
 
 declare global {
   interface Window {
+    famigliaUpdater?: {
+      install: (url: string) => Promise<boolean>;
+    };
     famigliaCredentials?: {
       save: (email: string, password: string) => Promise<boolean>;
       load: () => Promise<{ email: string; password: string } | null>;
