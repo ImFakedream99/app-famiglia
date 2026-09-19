@@ -41,12 +41,13 @@
     "esbuild": "^0.28.2",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vite-plugin-pwa": "^1.3.0"
   },
   "build": {
     "appId": "it.famiglia.gestione",
     "productName": "Famiglia",
-    "artifactName": "Famiglia-Installer-${version}.${ext}",
+    "artifactName": "Famiglia-Installer-\u0024{version}.\u0024{ext}",
     "directories": { "output": "release" },
     "files": ["dist/**/*", "electron/**/*", "package.json"],
     "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
