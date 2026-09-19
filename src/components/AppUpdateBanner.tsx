@@ -92,7 +92,7 @@ export const AppUpdateBanner: React.FC = () => {
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
             >
-              <ExternalLink className="h-3.5 w-3.5" />
+              <Download className="h-3.5 w-3.5" />
               Dettagli
             </a>
 
