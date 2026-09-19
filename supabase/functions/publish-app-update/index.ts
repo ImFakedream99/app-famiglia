@@ -34,25 +34,36 @@ Deno.serve(async (req) => {
     if (!new RegExp("^https://github\\.com/ImFakedream99/app-famiglia/commit/[0-9a-f]{40}$", "i").test(payload.commit_url)) {
       throw new Error("Commit URL non valido.");
     }
-    if (!new RegExp("^https://github\\.com/ImFakedream99/app-famiglia/releases/download/", "i").test(payload.download_url)) {
+    if (!new RegExp("^https://github\\.com/ImFakedream99/app-famiglia/releases/download/[^/]+/Famiglia-Installer-[^/]+\\.exe$", "i").test(payload.download_url)) {
       throw new Error("Download URL non valido.");
     }
 
-    const githubResponse = await fetch("https://api.github.com/repos/ImFakedream99/app-famiglia", {
-      headers: {
-        Authorization: `Bearer ${githubToken}`,
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "Famiglia-App-Update-Publisher",
-      },
-    });
-    if (!githubResponse.ok) throw new Error("GitHub authorization failed");
+    const githubHeaders = {
+      Authorization: `Bearer ${githubToken}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "Famiglia-App-Update-Publisher",
+    };
 
-    const repository = await githubResponse.json();
-    if (!repository?.permissions?.push) {
-      return new Response(JSON.stringify({ error: "GitHub token lacks repository push permission" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const commitResponse = await fetch(
+      `https://api.github.com/repos/ImFakedream99/app-famiglia/commits/${payload.commit_sha}`,
+      { headers: githubHeaders },
+    );
+    if (!commitResponse.ok) throw new Error("Commit GitHub non trovato o token non valido.");
+
+    const commit = await commitResponse.json();
+    const expectedMessage = String(commit?.commit?.message ?? "").split("\n")[0];
+    if (payload.commit_message && expectedMessage !== payload.commit_message) {
+      throw new Error("Commit message non corrisponde al commit GitHub.");
+    }
+
+    const assetResponse = await fetch(payload.download_url, {
+      method: "HEAD",
+      redirect: "follow",
+      headers: { "User-Agent": "Famiglia-App-Update-Publisher" },
+    });
+    if (!assetResponse.ok) {
+      throw new Error(`Installer GitHub non disponibile: HTTP ${assetResponse.status}`);
     }
 
     const admin = createClient(
@@ -65,7 +76,7 @@ Deno.serve(async (req) => {
       id: "current",
       version: payload.version,
       commit_sha: payload.commit_sha,
-      commit_message: payload.commit_message ?? "",
+      commit_message: payload.commit_message ?? expectedMessage,
       commit_url: payload.commit_url,
       download_url: payload.download_url,
       updated_at: new Date().toISOString(),
