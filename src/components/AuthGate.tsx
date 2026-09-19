@@ -26,6 +26,16 @@ import { initSupabaseConfig } from '../lib/supabase';
 
 type Mode = 'login' | 'register';
 
+declare global {
+  interface Window {
+    famigliaCredentials?: {
+      save: (email: string, password: string) => Promise<boolean>;
+      load: () => Promise<{ email: string; password: string } | null>;
+      clear: () => Promise<boolean>;
+    };
+  }
+}
+
 const shell = 'min-h-screen bg-stone-50 text-stone-900 flex items-center justify-center p-4 sm:p-8';
 
 export const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -43,6 +53,17 @@ export const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [familyName, setFamilyName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const saveCredentials = async (savedEmail: string, savedPassword: string) => {
+    try { await window.famigliaCredentials?.save(savedEmail, savedPassword); } catch {}
+  };
+
+  const loadSavedCredentials = async () => {
+    try {
+      const saved = await window.famigliaCredentials?.load();
+      if (saved) { setEmail(saved.email); setPassword(saved.password); }
+    } catch {}
+  };
 
   const refresh = async () => {
     const cfg = await initSupabaseConfig();
@@ -70,6 +91,7 @@ export const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
     const token = getInviteTokenFromUrl();
     setInviteToken(token);
     refresh();
+    loadSavedCredentials();
 
     const clientPromise = initSupabaseConfig();
     clientPromise.then(() => {
@@ -98,6 +120,7 @@ export const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
     try {
       if (mode === 'register') {
         const data = await signUp(email, password, displayName);
+        await saveCredentials(email, password);
         setSessionEmail(data.user?.email || email);
         if (!data.session) {
           setNotice('Account creato. Controlla la tua email per confermare l’account, poi torna qui e accedi.');
@@ -108,6 +131,7 @@ export const AuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) 
         }
       } else {
         await signIn(email, password);
+        await saveCredentials(email, password);
         await refresh();
       }
     } catch (e: any) {
