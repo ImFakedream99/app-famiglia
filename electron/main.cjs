@@ -2,6 +2,9 @@ const { app, BrowserWindow, ipcMain, safeStorage } = require('electron');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
+const https = require('https');
+const http = require('http');
 
 let server;
 let mainWindow;
@@ -99,3 +102,34 @@ app.whenReady().then(async()=>{
 });
 app.on('window-all-closed',()=>{if(process.platform!=='darwin') app.quit();});
 app.on('before-quit',()=>{if(server) server.close();});
+
+function downloadFile(url, destination) {
+  return new Promise((resolve, reject) => {
+    const transport = url.startsWith('https:') ? https : http;
+    const request = transport.get(url, { headers: { 'User-Agent': 'Famiglia-Updater' } }, (response) => {
+      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+        response.resume();
+        return resolve(downloadFile(new URL(response.headers.location, url).toString(), destination));
+      }
+      if (response.statusCode !== 200) {
+        response.resume();
+        return reject(new Error('Download aggiornamento fallito: HTTP ' + response.statusCode));
+      }
+      const file = fs.createWriteStream(destination);
+      response.pipe(file);
+      file.on('finish', () => file.close(() => resolve(destination)));
+      file.on('error', (error) => { try { file.close(); } catch {} reject(error); });
+    });
+    request.on('error', reject);
+  });
+}
+
+ipcMain.handle('update:download-install', async (_event, url) => {
+  const updateUrl = String(url || '').trim();
+  if (!/^https:\/\//i.test(updateUrl)) throw new Error('URL aggiornamento non valido.');
+  const installerPath = path.join(app.getPath('temp'), 'Famiglia-Update.exe');
+  await downloadFile(updateUrl, installerPath);
+  spawn(installerPath, [], { detached: true, stdio: 'ignore', windowsHide: false }).unref();
+  setTimeout(() => app.quit(), 300);
+  return true;
+});
