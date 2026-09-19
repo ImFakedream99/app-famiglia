@@ -15,11 +15,14 @@ import {
   Sun,
   Smartphone,
   Eye,
+  Link2,
+  Copy,
 } from 'lucide-react';
 import { useFamily } from '../context/FamilyContext';
 import { FamilyMember, NotificationSetting } from '../types';
 import { calculateAge, formatCurrency } from '../utils/formatters';
 import { PWAInstallButton } from './PWAInstallButton';
+import { createFamilyInvite } from '../lib/familyAuth';
 
 export const FamilySettingsView: React.FC = () => {
   const {
@@ -29,6 +32,8 @@ export const FamilySettingsView: React.FC = () => {
     resetToDefaults,
     isHighContrastDark,
     toggleHighContrastDark,
+    familyId,
+    familyName,
   } = useFamily();
 
   const isParent = currentMember.role === 'parent';
@@ -75,6 +80,29 @@ export const FamilySettingsView: React.FC = () => {
   const [initialBalance, setInitialBalance] = useState('20.00');
 
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteError, setInviteError] = useState('');
+
+  const handleCreateInvite = async () => {
+    setInviteBusy(true);
+    setInviteError('');
+    try {
+      const token = await createFamilyInvite(familyId);
+      setInviteLink(`famiglia://invite/${token}`);
+    } catch (e: any) {
+      setInviteError(e?.message || 'Non è stato possibile creare il link di invito.');
+    } finally {
+      setInviteBusy(false);
+    }
+  };
+
+  const handleCopyInvite = async () => {
+    if (!inviteLink) return;
+    await navigator.clipboard.writeText(inviteLink);
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 1800);
+  };
 
   const handleAddMember = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,6 +157,42 @@ export const FamilySettingsView: React.FC = () => {
             <span>Aggiungi Membro</span>
           </button>
         )}
+      </div>
+
+      {/* Family invitation */}
+      <div className="bg-white rounded-3xl p-6 border border-indigo-100 shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <Link2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-stone-900">Invita nella famiglia</h2>
+              <p className="text-xs text-stone-600 mt-1 max-w-2xl">
+                Crea un link personale per far entrare altri membri in <strong>{familyName}</strong>. Il link scade dopo 7 giorni.
+              </p>
+            </div>
+          </div>
+          {isParent && (
+            <button
+              onClick={handleCreateInvite}
+              disabled={inviteBusy}
+              className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-60 shrink-0"
+            >
+              {inviteBusy ? <span className="animate-pulse">Creo link…</span> : <><Link2 className="w-3.5 h-3.5" /> Crea link d’invito</>}
+            </button>
+          )}
+        </div>
+        {inviteLink && (
+          <div className="mt-4 p-3 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col sm:flex-row gap-2">
+            <input readOnly value={inviteLink} className="flex-1 min-w-0 bg-white border border-stone-200 rounded-xl px-3 py-2 text-xs font-mono text-stone-700" />
+            <button onClick={handleCopyInvite} className="px-3 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold flex items-center justify-center gap-1.5">
+              <Copy className="w-3.5 h-3.5" /> Copia link
+            </button>
+          </div>
+        )}
+        {inviteError && <p className="mt-3 text-xs font-medium text-rose-600">{inviteError}</p>}
+        <p className="mt-3 text-[11px] text-stone-500">Chi riceve il link dovrà installare Famiglia, registrarsi o accedere e poi accettare l’invito.</p>
       </div>
 
       {/* Members Management Card */}
