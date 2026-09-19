@@ -16,8 +16,16 @@ export async function getCurrentSession() {
 export async function signIn(email: string, password: string) {
   const client = getSupabaseClient();
   if (!client) throw new Error('Servizio account non configurato.');
-  const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password });
-  if (error) throw error;
+  const normalizedEmail = email.trim().toLowerCase();
+  const { data, error } = await client.auth.signInWithPassword({ email: normalizedEmail, password });
+  if (error) {
+    // Keep the backend error technical detail out of the UI while making the
+    // common Supabase auth failure actionable for the user.
+    if (error.message.toLowerCase().includes('invalid login credentials')) {
+      throw new Error('Email o password non riconosciute. Controlla i dati inseriti oppure usa “Password dimenticata”.');
+    }
+    throw error;
+  }
   return data;
 }
 
@@ -25,7 +33,7 @@ export async function signUp(email: string, password: string, displayName: strin
   const client = getSupabaseClient();
   if (!client) throw new Error('Servizio account non configurato.');
   const { data, error } = await client.auth.signUp({
-    email: email.trim(),
+    email: email.trim().toLowerCase(),
     password,
     options: { data: { display_name: displayName.trim() } },
   });
