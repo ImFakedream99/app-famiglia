@@ -5,3 +5,7 @@ contextBridge.exposeInMainWorld('famigliaCredentials', {
   load: () => ipcRenderer.invoke('credentials:load'),
   clear: () => ipcRenderer.invoke('credentials:clear'),
 });
+
+contextBridge.exposeInMainWorld('famigliaUpdater', {
+  install: (url) => ipcRenderer.invoke('update:download-install', url),
+});
