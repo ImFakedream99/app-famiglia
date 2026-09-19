@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const https = require('https');
-const http = require('http');
 
 let server;
 let mainWindow;
