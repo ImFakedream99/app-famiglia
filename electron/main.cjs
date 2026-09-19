@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -14,7 +14,7 @@ function startServer(root) {
   return new Promise((resolve,reject)=>{
     server=http.createServer((req,res)=>{
       const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
-      let file=path.join(root, pathname === '/' ? 'index.html' : pathname.replace(/^\\//,''));
+      let file=path.join(root, pathname === '/' ? 'index.html' : pathname.replace(/^\//,''));
       if (!file.startsWith(root)) { res.writeHead(403); return res.end('Forbidden'); }
       if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) file=path.join(root,'index.html');
       fs.readFile(file,(err,data)=>{
